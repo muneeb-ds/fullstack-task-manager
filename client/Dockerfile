@@ -4,13 +4,10 @@ FROM nginx:alpine
 COPY index.html /usr/share/nginx/html/
 COPY styles.css /usr/share/nginx/html/
 
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copy and set up startup script
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
+# Copy nginx configuration and substitute environment variables
+COPY nginx.conf /etc/nginx/templates/default.conf.template
+RUN envsubst '${BACKEND_API_URL}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
 
 EXPOSE 3000
 
-CMD ["/start.sh"] 
+CMD ["nginx", "-g", "daemon off;"] 

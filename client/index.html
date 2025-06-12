@@ -19,8 +19,8 @@
     </div>
 
     <script>
-        // Get API URL from environment variable or use default
-        const API_URL = ENV_BACKEND_API_URL || 'http://localhost:5001/api';
+        // Use relative URL that works in both development and production
+        const API_URL = '/api';
         console.log('Using API URL:', API_URL);
 
         async function fetchTasks() {
