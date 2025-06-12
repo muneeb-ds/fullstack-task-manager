@@ -32,6 +32,32 @@ const initializeApp = async () => {
       next();
     });
 
+    // Health check endpoint
+    app.get('/health', async (req, res) => {
+      try {
+        // Check database connection
+        await db.query('SELECT 1');
+        res.status(200).json({
+          status: 'healthy',
+          timestamp: new Date().toISOString(),
+          services: {
+            database: 'connected',
+            api: 'running'
+          }
+        });
+      } catch (error) {
+        console.error('Health check failed:', error);
+        res.status(503).json({
+          status: 'unhealthy',
+          timestamp: new Date().toISOString(),
+          services: {
+            database: 'disconnected',
+            api: 'running'
+          }
+        });
+      }
+    });
+
     // Swagger Documentation
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 

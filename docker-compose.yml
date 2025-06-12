@@ -1,19 +1,4 @@
 services:
-  frontend:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - HOST=0.0.0.0
-    networks:
-      - app-network
-    depends_on:
-      - backend
-
   backend:
     build:
       context: ./server
@@ -26,8 +11,28 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    # network_mode: host
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_API_URL=${BACKEND_API_URL}
+    # network_mode: host
+    # depends_on:
+    #   backend:
+    #     condition: service_healthy
     networks:
       - app-network
 

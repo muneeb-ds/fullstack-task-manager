@@ -11,23 +11,20 @@ if (missingEnvVars.length > 0) {
 
 const pool = new Pool({
   user: process.env.DB_USER,
-  host: process.env.DB_HOST === 'localhost' ? 'host.docker.internal' : process.env.DB_HOST,
-  database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: parseInt(process.env.DB_PORT, 10),
-  ssl: process.env.DB_SSL === 'true' ? {
-    rejectUnauthorized: false
-  } : false
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 5432,
 });
 
-// Test database connection
-pool.connect()
-  .then(() => console.log('Successfully connected to the database'))
-  .catch(err => {
+// Test the connection
+pool.connect((err, client, release) => {
+  if (err) {
     console.error('Error connecting to the database:', err);
-    process.exit(1);
-  });
+    return;
+  }
+  console.log('Successfully connected to database');
+  release();
+});
 
-module.exports = {
-  query: (text, params) => pool.query(text, params),
-}; 
+module.exports = pool; 
