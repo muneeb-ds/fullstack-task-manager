@@ -6,14 +6,13 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies with specific memory limits
-ENV NODE_OPTIONS="--max-old-space-size=256"
-RUN npm install --production=false --no-audit --no-fund --prefer-offline
+# Install dependencies
+RUN npm install
 
 # Copy source code
 COPY . .
 
-# Build the application with memory limit
+# Build the application
 RUN npm run build
 
 # Production stage
@@ -21,8 +20,7 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Install serve with specific memory limits
-ENV NODE_OPTIONS="--max-old-space-size=128"
+# Install serve to run the application
 RUN npm install -g serve
 
 # Copy built assets from builder stage

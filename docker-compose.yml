@@ -13,12 +13,6 @@ services:
       - app-network
     depends_on:
       - backend
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
 
   backend:
     build:
@@ -36,12 +30,6 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - app-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
 
 # volumes:
 #   postgres_data: 
