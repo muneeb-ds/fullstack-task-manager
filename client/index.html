@@ -46,13 +46,43 @@
                 taskElement.innerHTML = `
                     <div class="task-content">
                         <input type="checkbox" ${task.completed ? 'checked' : ''} 
-                               onchange="updateTask(${task.id}, this.checked)">
-                        <span class="task-title">${task.title}</span>
+                               onchange="updateTask(${task.id}, this.checked, this.closest('.task-item').querySelector('.task-title').textContent)">
+                        <span class="task-title" ondblclick="makeEditable(this)">${task.title}</span>
                     </div>
-                    <button onclick="deleteTask(${task.id})" class="delete-btn">Delete</button>
+                    <div class="task-actions">
+                        <button onclick="deleteTask(${task.id})" class="delete-btn">Delete</button>
+                    </div>
                 `;
                 taskList.appendChild(taskElement);
             });
+        }
+
+        function makeEditable(element) {
+            const currentText = element.textContent;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentText;
+            input.className = 'edit-input';
+            
+            input.onblur = function() {
+                const newTitle = this.value.trim();
+                if (newTitle && newTitle !== currentText) {
+                    const taskId = this.closest('.task-item').querySelector('.delete-btn').getAttribute('onclick').match(/\d+/)[0];
+                    const completed = this.closest('.task-item').querySelector('input[type="checkbox"]').checked;
+                    updateTask(taskId, completed, newTitle);
+                }
+                element.textContent = newTitle || currentText;
+            };
+
+            input.onkeypress = function(e) {
+                if (e.key === 'Enter') {
+                    this.blur();
+                }
+            };
+
+            element.textContent = '';
+            element.appendChild(input);
+            input.focus();
         }
 
         async function addTask() {
@@ -85,7 +115,7 @@
             }
         }
 
-        async function updateTask(id, completed) {
+        async function updateTask(id, completed, title) {
             try {
                 const response = await fetch(`${API_URL}/tasks/${id}`, {
                     method: 'PUT',
@@ -93,7 +123,7 @@
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ completed })
+                    body: JSON.stringify({ completed, title })
                 });
 
                 if (!response.ok) {
@@ -103,6 +133,7 @@
                 await fetchTasks();
             } catch (error) {
                 console.error('Error updating task:', error);
+                alert('Failed to update task. Please try again.');
             }
         }
 
@@ -122,6 +153,7 @@
                 await fetchTasks();
             } catch (error) {
                 console.error('Error deleting task:', error);
+                alert('Failed to delete task. Please try again.');
             }
         }
 
