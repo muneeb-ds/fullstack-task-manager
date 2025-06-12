@@ -3,9 +3,11 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const db = require('./config/db');
 const { createTables } = require('./config/initDb');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpecs = require('./config/swagger');
 
 const app = express();
-const port = 5001;
+const port = process.env.PORT || 5001;
 
 // Initialize database tables
 const initializeApp = async () => {
@@ -29,6 +31,9 @@ const initializeApp = async () => {
       console.log('Request body:', req.body);
       next();
     });
+
+    // Swagger Documentation
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
     // GET all tasks
     app.get('/api/tasks', async (req, res) => {
@@ -111,6 +116,7 @@ const initializeApp = async () => {
     // Start the server
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);
+      console.log(`API Documentation available at http://localhost:${port}/api-docs`);
     });
   } catch (error) {
     console.error('Failed to initialize application:', error);
