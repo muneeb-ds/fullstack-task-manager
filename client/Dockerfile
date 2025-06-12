@@ -6,8 +6,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies with space optimization
+RUN npm install --production=false --no-audit --no-fund --prefer-offline --no-optional
 
 # Copy source code
 COPY . .
@@ -21,7 +21,7 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Install serve to run the application
-RUN npm install -g serve
+RUN npm install -g serve --no-audit --no-fund --prefer-offline
 
 # Copy built assets from builder stage
 COPY --from=builder /app/build ./build
