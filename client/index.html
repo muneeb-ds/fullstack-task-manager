@@ -19,11 +19,16 @@
     </div>
 
     <script>
-        const API_URL = window.ENV_BACKEND_API_URL || 'http://localhost:5001/api';
+        // Get API URL from environment variable or use default
+        const API_URL = ENV_BACKEND_API_URL || 'http://localhost:5001/api';
+        console.log('Using API URL:', API_URL);
 
         async function fetchTasks() {
             try {
                 const response = await fetch(`${API_URL}/tasks`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const tasks = await response.json();
                 displayTasks(tasks);
             } catch (error) {
@@ -57,20 +62,26 @@
             if (!title) return;
 
             try {
+                console.log('Sending POST request to:', `${API_URL}/tasks`);
                 const response = await fetch(`${API_URL}/tasks`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({ title })
                 });
 
-                if (response.ok) {
-                    input.value = '';
-                    fetchTasks();
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => null);
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorData?.message || 'Unknown error'}`);
                 }
+
+                input.value = '';
+                await fetchTasks();
             } catch (error) {
                 console.error('Error adding task:', error);
+                alert('Failed to add task. Please try again.');
             }
         }
 
@@ -79,14 +90,17 @@
                 const response = await fetch(`${API_URL}/tasks/${id}`, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({ completed })
                 });
 
-                if (response.ok) {
-                    fetchTasks();
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+
+                await fetchTasks();
             } catch (error) {
                 console.error('Error updating task:', error);
             }
@@ -95,16 +109,28 @@
         async function deleteTask(id) {
             try {
                 const response = await fetch(`${API_URL}/tasks/${id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
                 });
 
-                if (response.ok) {
-                    fetchTasks();
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+
+                await fetchTasks();
             } catch (error) {
                 console.error('Error deleting task:', error);
             }
         }
+
+        // Add event listener for Enter key in input field
+        document.getElementById('taskInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addTask();
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', fetchTasks);
     </script>
